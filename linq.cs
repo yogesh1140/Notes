@@ -217,3 +217,47 @@ public class CarStatistics
 
 context.Database.ExecuteSqlCommand("exec sp_name {0}", param1)
 
+// Specify modified entity in disconnected environment	
+context.Entry(samuraiObj).State= EntityState.Modified;
+
+//Attach for change tracker
+context.ChangeTracker.DetectChanges();
+
+
+//Create Shadow property
+modelBuilder.Entry<Samurai>().Property<DateTime>("prop1");
+
+//Access Shadow property(not available on model)
+context.Entry(samuraiObj).Property("prop1").CurrentValue =value;
+
+//Access All Entities
+var entity in modelBuilder.Model.GetEntityTypes();
+modelBuilder.Entry<entity>().Property<DateTime>("prop1");
+
+
+//Owned Types/Entities
+
+// Entity Class have property which is non-entity
+// for.eg for samurai BetterName is of type PersonFullName which is not Entity
+
+modelBinder.Entity<Samurais>.OwnsOne(s=> s.BetterName)
+	.Property(b=> b.GivenName).HasColumnName("GivenName"); //specify colmnheader in db and will be part of single table
+
+modelBinder.Entity<Samurais>.OwnsOne(s=> s.BetterName).ToTable("BetterName"); //store as saperate table
+
+
+//Map Scalar Function
+// mUst add to dbcontext class as method
+[DbFunction(Schema("dbo"))]
+public static string FucntionName (int parma1) {   //MethodName must match with fucntion name in db
+	throw new Exception();
+}
+
+
+// Map View 
+
+public DbQuery<SamuraiStat> SamuraiStats {get;set;} //on dbcontext
+
+modelBuilder.Query<SamuraiStat>().ToView("ViewName");
+
+
